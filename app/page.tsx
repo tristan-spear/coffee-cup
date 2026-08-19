@@ -20,8 +20,8 @@ function Heart({ className }: { className?: string }) {
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-col bg-cream text-brown">
-      <header className="flex items-center gap-2 bg-brown px-5 py-3 text-cream">
+    <div className="grid min-h-dvh grid-rows-[auto_1fr_auto] bg-cream text-brown">
+      <header className="flex h-14 items-center gap-2 bg-brown px-5 text-cream">
         <Image
           src="/assets/logo-trans.png"
           alt=""
@@ -33,7 +33,7 @@ export default function Home() {
         <span className="text-2xl leading-none tracking-wide">CoffeeCup</span>
       </header>
 
-      <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+      <main className="flex flex-col items-center justify-center px-6 text-center">
         <Image
           src="/assets/logo-alt-trans.png"
           alt="CoffeeCup"
@@ -67,6 +67,18 @@ export default function Home() {
           </span>
         </p>
       </main>
+
+      <footer className="flex min-h-14 items-center justify-center bg-brown px-5 py-3 text-center text-lg text-cream">
+        <p>
+          Have suggestions?{" "}
+          <a
+            href="mailto:support@coffeecup.world"
+            className="underline decoration-cream/70 underline-offset-2 transition-opacity hover:opacity-80"
+          >
+            We&apos;d love to hear them.
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
