@@ -13,9 +13,6 @@ export const metadata: Metadata = {
   title: "CoffeeCup",
   description:
     "CoffeeCup is on the way. Join the waitlist to be the first to know when we launch.",
-  icons: {
-    icon: "/assets/logo-alt.png",
-  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
