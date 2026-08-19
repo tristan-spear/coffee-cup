@@ -10,7 +10,7 @@ const patrickHand = Patrick_Hand({
 });
 
 export const metadata: Metadata = {
-  title: "CoffeeCup — Meetings Made Easy",
+  title: "CoffeeCup",
   description:
     "CoffeeCup is on the way. Join the waitlist to be the first to know when we launch.",
   icons: {
