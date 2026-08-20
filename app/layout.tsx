@@ -12,7 +12,7 @@ const patrickHand = Patrick_Hand({
 export const metadata: Metadata = {
   title: "CoffeeCup",
   description:
-    "CoffeeCup is on the way. Join the waitlist to be the first to know when we launch.",
+    "Share your availability. Let others book time that works for you. No back and forth.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

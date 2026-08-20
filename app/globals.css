@@ -1,14 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --brown: #4b2f21;
-  --cream: #f3e9e1;
+  --brown: #3d2b1f;
+  --cream: #f5f0e8;
+  --beige: #ece5d8;
 }
 
 @theme inline {
   --color-brown: var(--brown);
   --color-cream: var(--cream);
+  --color-beige: var(--beige);
   --font-sans: var(--font-hand);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -19,4 +25,71 @@ body {
 
 body {
   font-family: var(--font-hand), "Patrick Hand", cursive;
+}
+
+.sketch {
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+.sketch-sm {
+  border-radius: 12px 4px 10px 3px / 4px 10px 3px 12px;
+}
+
+.sketch-panel {
+  border-radius: 18px 8px 16px 6px / 8px 16px 6px 18px;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.7s ease-out both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise-in 0.7s ease-out 0.12s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise-in 0.7s ease-out 0.24s both;
+}
+
+.animate-rise-delay-3 {
+  animation: rise-in 0.7s ease-out 0.36s both;
+}
+
+.animate-float {
+  animation: soft-float 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-rise,
+  .animate-rise-delay-1,
+  .animate-rise-delay-2,
+  .animate-rise-delay-3,
+  .animate-float {
+    animation: none;
+  }
 }
