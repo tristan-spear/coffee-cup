@@ -350,6 +350,98 @@ export default function Home() {
           </p>
         </section>
       </main>
+
+      <footer className="bg-brown px-6 py-16 text-cream sm:px-10 sm:py-20">
+        <div className="mx-auto grid max-w-5xl gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <a href="#top" className="inline-flex items-center gap-2">
+              <Image
+                src="/assets/logo-trans.png"
+                alt=""
+                width={27}
+                height={40}
+                className="h-9 w-auto"
+              />
+              <span className="text-3xl leading-none tracking-wide">
+                CoffeeCup
+              </span>
+            </a>
+            <p className="mt-4 max-w-xs text-xl leading-relaxed text-cream/85">
+              Meetings made easy. Share your availability and skip the back and
+              forth.
+            </p>
+          </div>
+
+          <div>
+            <p className="mb-4 text-xl tracking-wide uppercase">Explore</p>
+            <ul className="space-y-3 text-lg text-cream/90">
+              <li>
+                <a href="#how-it-works" className="transition-opacity hover:opacity-80">
+                  how it works
+                </a>
+              </li>
+              <li>
+                <a href="#features" className="transition-opacity hover:opacity-80">
+                  features
+                </a>
+              </li>
+              <li>
+                <a href="#pricing" className="transition-opacity hover:opacity-80">
+                  pricing
+                </a>
+              </li>
+              <li>
+                <a href="#get-started" className="transition-opacity hover:opacity-80">
+                  get started
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="mb-4 text-xl tracking-wide uppercase">Account</p>
+            <ul className="space-y-3 text-lg text-cream/90">
+              <li>
+                <a href="#login" className="transition-opacity hover:opacity-80">
+                  login
+                </a>
+              </li>
+              <li>
+                <a href="#get-started" className="transition-opacity hover:opacity-80">
+                  create your page
+                </a>
+              </li>
+              <li>
+                <a href="#book" className="transition-opacity hover:opacity-80">
+                  book a meeting
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="mb-4 text-xl tracking-wide uppercase">Say hello</p>
+            <p className="text-lg leading-relaxed text-cream/90">
+              Have suggestions?
+              <br />
+              <a
+                href="mailto:support@coffeecup.world"
+                className="underline decoration-cream/50 underline-offset-2 transition-opacity hover:opacity-80"
+              >
+                We&apos;d love to hear them.
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-14 flex max-w-5xl flex-col items-center justify-between gap-4 border-t border-cream/25 pt-8 text-center text-lg text-cream/75 sm:flex-row sm:text-left">
+          <p>© {new Date().getFullYear()} CoffeeCup. All rights reserved.</p>
+          <p className="flex items-center gap-2">
+            <Heart className="h-4 w-4" />
+            <span>simple. personal. productive.</span>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
