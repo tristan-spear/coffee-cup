@@ -143,20 +143,22 @@ function BookingMockup() {
 export default function Home() {
   return (
     <div className="bg-cream text-brown">
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 bg-brown px-4 text-cream sm:px-6">
-        <a href="#top" className="flex items-center gap-2">
+      <header className="sticky top-0 z-20 flex h-18 items-center justify-between gap-4 bg-brown px-5 text-cream sm:h-20 sm:px-8">
+        <a href="#top" className="flex items-center gap-2.5">
           <Image
             src="/assets/logo-trans.png"
             alt=""
-            width={27}
-            height={40}
-            className="h-8 w-auto"
+            width={32}
+            height={48}
+            className="h-10 w-auto sm:h-11"
             priority
           />
-          <span className="text-2xl leading-none tracking-wide">CoffeeCup</span>
+          <span className="text-3xl leading-none tracking-wide sm:text-[2rem]">
+            CoffeeCup
+          </span>
         </a>
 
-        <nav className="hidden items-center gap-5 text-lg md:flex">
+        <nav className="hidden items-center gap-6 text-xl md:flex">
           <a href="#how-it-works" className="transition-opacity hover:opacity-80">
             how it works
           </a>
@@ -168,7 +170,7 @@ export default function Home() {
           </a>
           <a
             href="#login"
-            className="sketch-sm border border-cream px-3 py-1 transition-opacity hover:opacity-80"
+            className="sketch-sm border border-cream px-4 py-1.5 transition-opacity hover:opacity-80"
           >
             login
           </a>
@@ -176,7 +178,7 @@ export default function Home() {
 
         <a
           href="#login"
-          className="sketch-sm border border-cream px-3 py-1 text-lg md:hidden"
+          className="sketch-sm border border-cream px-4 py-1.5 text-xl md:hidden"
         >
           login
         </a>
