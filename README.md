@@ -1,37 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CoffeeCup
 
-## Getting Started
+Group availability scheduling — create an event, share a link, and find when everyone is free. No accounts required.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) App Router + TypeScript
+- Tailwind CSS
+- [Neon](https://neon.tech) PostgreSQL (`@neondatabase/serverless`)
+- Zod validation
+- date-fns + `@date-fns/tz`
+- Vitest
+
+> This repo already used Neon for Postgres. The MVP keeps that setup (equivalent to the Supabase schema described in the product brief) and performs all writes through Next.js server actions so database credentials stay server-side.
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Environment variables
+
+Copy `.env.example` to `.env.local` (or `.env`):
+
+```bash
+cp .env.example .env.local
+```
+
+Set:
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Neon (or any Postgres) connection string |
+| `NEXT_PUBLIC_SITE_URL` | No | Absolute origin for share links (e.g. `https://coffeecup.world`) |
+
+### 3. Create a Neon project
+
+1. Sign up at [neon.tech](https://neon.tech) and create a project.
+2. Open **Dashboard → Connect** and copy the connection string.
+3. Paste it into `DATABASE_URL` in `.env.local`.
+
+Any standard Postgres provider works if you prefer not to use Neon.
+
+### 4. Apply the database migration
+
+```bash
+npm run db:migrate
+```
+
+This applies every SQL file in `db/migrations/` (currently `001_create_scheduling.sql`): events, dates, participants (with hashed edit tokens), and availability slots.
+
+### 5. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
+| `npm test` | Vitest unit tests |
+| `npm run format` | Prettier write (if available) / eslint fix |
+| `npm run db:migrate` | Apply SQL migrations |
 
-## Learn More
+## Testing
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tests cover slot generation, intervals, event validation, selection/deselection, heatmap counts/intensity, duplicate slot filtering, and edit-token hashing.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
+1. Push the repo to GitHub.
+2. Import the project on [Vercel](https://vercel.com) (or your host of choice).
+3. Set `DATABASE_URL` and optionally `NEXT_PUBLIC_SITE_URL` in the host’s environment settings.
+4. Run migrations against the production database (`npm run db:migrate` with the production `DATABASE_URL`).
+5. Deploy.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Product notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# coffee-cup
+- Organizer timezone is captured in the browser at creation time and shown on the event page.
+- Participant edit tokens are stored only as hashes in the database; the raw token lives in `localStorage` on that browser.
+- No accounts, OAuth, calendar sync, or email invitations in this MVP.
