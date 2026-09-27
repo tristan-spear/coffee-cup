@@ -10,15 +10,22 @@ const patrickHand = Patrick_Hand({
 });
 
 export const metadata: Metadata = {
-  title: "CoffeeCup",
+  title: {
+    default: "CoffeeCup",
+    template: "%s · CoffeeCup",
+  },
   description:
-    "Share your availability. Let others book time that works for you. No back and forth.",
+    "Find a time that works for everyone. Create an event, share the link, and see when people are free—no accounts required.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" className={`${patrickHand.variable} h-full antialiased`}>
-      <body className={`${patrickHand.className} flex min-h-full flex-col`}>
+      <body className={`${patrickHand.className} flex min-h-full flex-col text-ink`}>
         {children}
       </body>
     </html>

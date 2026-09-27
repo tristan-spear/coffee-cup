@@ -2,14 +2,24 @@
 
 :root {
   --brown: #3d2b1f;
+  --medium-brown: #8a5a3b;
+  --light-brown: #c9a98e;
   --cream: #f5f0e8;
   --beige: #ece5d8;
+  --soft: #fffdf9;
+  --ink: #2e211a;
+  --muted: #76655b;
 }
 
 @theme inline {
   --color-brown: var(--brown);
+  --color-medium-brown: var(--medium-brown);
+  --color-light-brown: var(--light-brown);
   --color-cream: var(--cream);
   --color-beige: var(--beige);
+  --color-soft: var(--soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
   --font-sans: var(--font-hand);
 }
 
