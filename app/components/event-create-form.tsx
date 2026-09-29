@@ -18,6 +18,9 @@ function formatTimeLabel(value: string): string {
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
+const fieldClass =
+  "w-full rounded-md border border-brown/30 bg-soft px-3 py-2.5 text-lg text-ink outline-none focus-visible:border-brown focus-visible:ring-2 focus-visible:ring-brown/30";
+
 export function EventCreateForm() {
   const [title, setTitle] = useState("");
   const [dates, setDates] = useState<string[]>([]);
@@ -52,111 +55,106 @@ export function EventCreateForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="sketch-panel mx-auto w-full max-w-xl border-2 border-brown/20 bg-soft p-6 sm:p-8"
+      className="space-y-5 rounded-lg border border-brown/20 bg-soft p-5 sm:p-6"
+      aria-describedby={error ? "create-error" : undefined}
     >
-      <div className="space-y-6">
-        <div>
-          <label htmlFor="event-title" className="mb-2 block text-xl">
-            Event name
-          </label>
-          <input
-            id="event-title"
-            name="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={120}
-            placeholder="Team sync, study group, dinner…"
-            className="sketch-sm w-full border-2 border-brown/25 bg-cream px-4 py-3 text-xl outline-none focus:border-brown"
-            required
-          />
-        </div>
-
-        <div>
-          <p className="mb-2 text-xl">Possible dates</p>
-          <MultiDateSelector selected={dates} onChange={setDates} />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="start-time" className="mb-2 block text-xl">
-              Earliest time
-            </label>
-            <select
-              id="start-time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="sketch-sm w-full border-2 border-brown/25 bg-cream px-4 py-3 text-xl outline-none focus:border-brown"
-            >
-              {TIME_OPTIONS.map((time) => (
-                <option key={time} value={time}>
-                  {formatTimeLabel(time)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="end-time" className="mb-2 block text-xl">
-              Latest time
-            </label>
-            <select
-              id="end-time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="sketch-sm w-full border-2 border-brown/25 bg-cream px-4 py-3 text-xl outline-none focus:border-brown"
-            >
-              {TIME_OPTIONS.map((time) => (
-                <option key={time} value={time}>
-                  {formatTimeLabel(time)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <fieldset>
-          <legend className="mb-2 text-xl">Time interval</legend>
-          <div className="flex flex-wrap gap-2">
-            {([15, 30, 60] as const).map((interval) => (
-              <label
-                key={interval}
-                className={`sketch-sm cursor-pointer border-2 px-4 py-2 text-lg transition-colors ${
-                  intervalMinutes === interval
-                    ? "border-brown bg-brown text-cream"
-                    : "border-brown/25 bg-cream hover:bg-beige"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="interval"
-                  value={interval}
-                  checked={intervalMinutes === interval}
-                  onChange={() => setIntervalMinutes(interval)}
-                  className="sr-only"
-                />
-                {interval} min
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {error ? (
-          <p
-            role="alert"
-            className="sketch-sm border border-brown/30 bg-beige px-4 py-3 text-lg"
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className="sketch-sm inline-flex h-12 w-full items-center justify-center bg-brown px-6 text-xl text-cream transition-transform duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isPending ? "Creating…" : "Create an event"}
-        </button>
+      <div>
+        <label htmlFor="event-title" className="mb-1.5 block text-lg">
+          Event name
+        </label>
+        <input
+          id="event-title"
+          name="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={120}
+          placeholder="Team sync"
+          className={fieldClass}
+          required
+          autoComplete="off"
+        />
       </div>
+
+      <div>
+        <p id="dates-label" className="mb-1.5 text-lg">
+          Dates
+        </p>
+        <MultiDateSelector
+          selected={dates}
+          onChange={setDates}
+          labelledBy="dates-label"
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="start-time" className="mb-1.5 block text-lg">
+            From
+          </label>
+          <select
+            id="start-time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className={fieldClass}
+          >
+            {TIME_OPTIONS.map((time) => (
+              <option key={time} value={time}>
+                {formatTimeLabel(time)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="end-time" className="mb-1.5 block text-lg">
+            To
+          </label>
+          <select
+            id="end-time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className={fieldClass}
+          >
+            {TIME_OPTIONS.map((time) => (
+              <option key={time} value={time}>
+                {formatTimeLabel(time)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="interval" className="mb-1.5 block text-lg">
+          Time slots
+        </label>
+        <select
+          id="interval"
+          value={intervalMinutes}
+          onChange={(e) =>
+            setIntervalMinutes(Number(e.target.value) as IntervalMinutes)
+          }
+          className={fieldClass}
+        >
+          <option value={15}>Every 15 minutes</option>
+          <option value={30}>Every 30 minutes</option>
+          <option value={60}>Every 60 minutes</option>
+        </select>
+      </div>
+
+      {error ? (
+        <p id="create-error" role="alert" className="text-lg text-brown">
+          {error}
+        </p>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="inline-flex h-12 w-full items-center justify-center rounded-md bg-brown px-5 text-xl text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {isPending ? "Creating…" : "Create event"}
+      </button>
     </form>
   );
 }

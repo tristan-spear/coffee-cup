@@ -159,7 +159,7 @@ export function AvailabilityGrid({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-auto border-2 border-brown/20 bg-soft sketch-panel ${
+      className={`relative overflow-auto rounded-md border border-brown/25 bg-soft ${
         isPainting ? "select-none touch-none" : ""
       }`}
       style={{

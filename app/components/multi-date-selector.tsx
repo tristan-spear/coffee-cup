@@ -16,6 +16,7 @@ type MultiDateSelectorProps = {
   selected: string[];
   onChange: (dates: string[]) => void;
   maxDates?: number;
+  labelledBy?: string;
 };
 
 function toKey(date: Date): string {
@@ -26,6 +27,7 @@ export function MultiDateSelector({
   selected,
   onChange,
   maxDates = 31,
+  labelledBy,
 }: MultiDateSelectorProps) {
   const today = startOfDay(new Date());
   const [month, setMonth] = useState(startOfMonth(today));
@@ -58,20 +60,26 @@ export function MultiDateSelector({
   }
 
   return (
-    <div className="sketch-panel border-2 border-brown/25 bg-soft p-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <div
+      className="rounded-md border border-brown/25 bg-cream p-3"
+      role="group"
+      aria-labelledby={labelledBy}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
         <button
           type="button"
-          className="sketch-sm border border-brown/30 px-3 py-1 text-lg hover:bg-beige"
+          className="min-h-10 min-w-10 rounded-md border border-brown/25 px-2 text-xl hover:bg-beige focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
           onClick={() => setMonth((m) => addMonths(m, -1))}
           aria-label="Previous month"
         >
           ‹
         </button>
-        <p className="text-xl tracking-wide">{format(month, "MMMM yyyy")}</p>
+        <p className="text-lg" aria-live="polite">
+          {format(month, "MMMM yyyy")}
+        </p>
         <button
           type="button"
-          className="sketch-sm border border-brown/30 px-3 py-1 text-lg hover:bg-beige"
+          className="min-h-10 min-w-10 rounded-md border border-brown/25 px-2 text-xl hover:bg-beige focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
           onClick={() => setMonth((m) => addMonths(m, 1))}
           aria-label="Next month"
         >
@@ -81,7 +89,9 @@ export function MultiDateSelector({
 
       <div className="mb-1 grid grid-cols-7 gap-1 text-center text-sm text-muted">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((label) => (
-          <span key={label}>{label}</span>
+          <span key={label} aria-hidden>
+            {label}
+          </span>
         ))}
       </div>
 
@@ -102,7 +112,7 @@ export function MultiDateSelector({
               onClick={() => toggle(day)}
               aria-pressed={isSelected}
               aria-label={format(day, "EEEE, MMMM d, yyyy")}
-              className={`sketch-sm aspect-square text-lg transition-colors ${
+              className={`min-h-10 rounded-md text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown ${
                 isSelected
                   ? "bg-brown text-cream"
                   : isPast
@@ -116,10 +126,10 @@ export function MultiDateSelector({
         })}
       </div>
 
-      <p className="mt-3 text-base text-muted">
+      <p className="mt-2 text-base text-muted" aria-live="polite">
         {selected.length === 0
-          ? "Select one or more dates."
-          : `${selected.length} date${selected.length === 1 ? "" : "s"} selected`}
+          ? "Choose at least one date."
+          : `${selected.length} selected`}
       </p>
     </div>
   );

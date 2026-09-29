@@ -23,40 +23,9 @@ type EventWorkspaceProps = {
 type ViewMode = "mine" | "group";
 type EditorPhase = "name" | "editing" | "saved";
 
-function readInitialParticipant(
-  eventId: string,
-  participants: PublicEvent["participants"],
-): {
-  stored: StoredParticipant | null;
-  displayName: string;
-  selected: Set<string>;
-  phase: EditorPhase;
-} {
-  const existing = getStoredParticipant(eventId);
-  if (!existing) {
-    return {
-      stored: null,
-      displayName: "",
-      selected: new Set(),
-      phase: "name",
-    };
-  }
-
-  const mine = participants.find((p) => p.id === existing.participantId);
-  return {
-    stored: existing,
-    displayName: existing.displayName,
-    selected: new Set(
-      (mine?.slotStarts ?? []).map((s) => new Date(s).toISOString()),
-    ),
-    phase: mine ? "saved" : "name",
-  };
-}
-
 export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) {
   const [event, setEvent] = useState(initialEvent);
-  const [viewMode, setViewMode] = useState<ViewMode>("group");
-  const [hydrated, setHydrated] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("mine");
   const [stored, setStored] = useState<StoredParticipant | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -65,23 +34,28 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // localStorage is only available in the browser; hydrate after mount.
   useEffect(() => {
-    const initial = readInitialParticipant(
-      initialEvent.id,
-      initialEvent.participants,
+    const existing = getStoredParticipant(initialEvent.id);
+    if (!existing) {
+      return;
+    }
+
+    const mine = initialEvent.participants.find(
+      (p) => p.id === existing.participantId,
     );
-    queueMicrotask(() => {
-      setStored(initial.stored);
-      setDisplayName(initial.displayName);
-      setSelected(initial.selected);
-      setPhase(initial.phase);
-      setHydrated(true);
-      if (initial.phase === "saved") {
+
+    startTransition(() => {
+      setStored(existing);
+      setDisplayName(existing.displayName);
+      if (mine) {
+        setSelected(
+          new Set(mine.slotStarts.map((s) => new Date(s).toISOString())),
+        );
+        setPhase("saved");
         setViewMode("group");
       }
     });
-  }, [initialEvent.id, initialEvent.participants]);
+  }, [initialEvent.id, initialEvent.participants, startTransition]);
 
   const slotStarts = useMemo(
     () =>
@@ -112,14 +86,6 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
     }
   }
 
-  function selectAll() {
-    setSelected(new Set(slotStarts));
-  }
-
-  function clearSelection() {
-    setSelected(new Set());
-  }
-
   function handleSave() {
     setError(null);
     setMessage(null);
@@ -146,7 +112,7 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
 
       if (!nextStored.editToken) {
         setError(
-          "Saved, but we couldn't store your edit key in this browser. You may need to respond again later from another device.",
+          "Saved, but this browser could not keep your edit key. You may need to respond again later from another device.",
         );
       } else {
         setStoredParticipant(event.id, nextStored);
@@ -156,186 +122,187 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
       setEvent(result.data.event);
       setPhase("saved");
       setViewMode("group");
-      setMessage("Availability saved. Thanks!");
+      setMessage("Saved. Here’s when the group is free.");
     });
   }
 
-  const dateSummary = event.dates.map((d) => formatDateLabel(d)).join(" · ");
+  const dateSummary = event.dates.map((d) => formatDateLabel(d)).join(", ");
+  const hasResponded =
+    phase === "saved" ||
+    Boolean(
+      stored &&
+        event.participants.some((p) => p.id === stored.participantId),
+    );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
-      <header className="space-y-3 text-center sm:text-left">
-        <h1 className="text-4xl tracking-wide uppercase sm:text-5xl">
-          {event.title}
-        </h1>
-        <p className="text-xl text-ink">{dateSummary}</p>
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
+      <header className="space-y-2">
+        <h1 className="text-3xl leading-snug sm:text-4xl">{event.title}</h1>
         <p className="text-lg text-muted">
-          {`Times shown in ${event.timezone} · ${event.intervalMinutes}-minute slots · ${event.startTime}–${event.endTime}`}
+          {dateSummary}
+          <span aria-hidden> · </span>
+          {event.timezone}
         </p>
       </header>
 
       <ShareLinkControl url={shareUrl} />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_16rem]">
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode("mine")}
-              className={`sketch-sm px-4 py-2 text-lg ${
-                viewMode === "mine"
-                  ? "bg-brown text-cream"
-                  : "border-2 border-brown/25 bg-cream hover:bg-beige"
-              }`}
-            >
-              My availability
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("group")}
-              className={`sketch-sm px-4 py-2 text-lg ${
-                viewMode === "group"
-                  ? "bg-brown text-cream"
-                  : "border-2 border-brown/25 bg-cream hover:bg-beige"
-              }`}
-            >
-              Group results
-            </button>
-          </div>
+      <div
+        role="tablist"
+        aria-label="Availability views"
+        className="flex gap-1 rounded-md border border-brown/20 bg-soft p-1"
+      >
+        <button
+          type="button"
+          role="tab"
+          id="tab-mine"
+          aria-selected={viewMode === "mine"}
+          aria-controls="panel-mine"
+          onClick={() => setViewMode("mine")}
+          className={`min-h-11 flex-1 rounded-md px-3 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown ${
+            viewMode === "mine" ? "bg-brown text-cream" : "hover:bg-beige"
+          }`}
+        >
+          Your times
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-group"
+          aria-selected={viewMode === "group"}
+          aria-controls="panel-group"
+          onClick={() => setViewMode("group")}
+          className={`min-h-11 flex-1 rounded-md px-3 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown ${
+            viewMode === "group" ? "bg-brown text-cream" : "hover:bg-beige"
+          }`}
+        >
+          Group results
+        </button>
+      </div>
 
-          {viewMode === "mine" ? (
-            <div className="space-y-4">
-              {!hydrated ? (
-                <p className="text-lg text-muted">Loading your saved response…</p>
-              ) : phase === "name" ? (
-                <div className="sketch-panel border-2 border-brown/20 bg-soft p-5">
-                  <ParticipantNameForm
-                    initialName={displayName}
-                    onSubmit={startEditing}
-                  />
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xl">
-                      Editing as{" "}
-                      <span className="underline decoration-brown/30">
-                        {displayName}
-                      </span>
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={selectAll}
-                        className="sketch-sm border-2 border-brown/25 bg-cream px-3 py-1.5 text-lg hover:bg-beige"
-                      >
-                        Select all
-                      </button>
-                      <button
-                        type="button"
-                        onClick={clearSelection}
-                        className="sketch-sm border-2 border-brown/25 bg-cream px-3 py-1.5 text-lg hover:bg-beige"
-                      >
-                        Clear
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={isPending}
-                        className="sketch-sm bg-brown px-4 py-1.5 text-lg text-cream disabled:opacity-60"
-                      >
-                        {isPending ? "Saving…" : "Save availability"}
-                      </button>
-                    </div>
-                  </div>
+      {message ? (
+        <p role="status" aria-live="polite" className="text-lg text-ink">
+          {message}
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-lg text-brown">
+          {error}
+        </p>
+      ) : null}
 
-                  {selected.size === 0 ? (
-                    <p className="text-base text-muted">
-                      Drag across the grid to mark when you&apos;re free. You can
-                      save an empty selection to clear your times.
-                    </p>
-                  ) : (
-                    <p className="text-base text-muted">
-                      {`${selected.size} slot${selected.size === 1 ? "" : "s"} selected`}
-                    </p>
-                  )}
-
-                  <AvailabilityGrid
-                    dates={event.dates}
-                    slotStarts={slotStarts}
-                    timezone={event.timezone}
-                    selected={selected}
-                    onChange={setSelected}
-                  />
-                </>
-              )}
+      {viewMode === "mine" ? (
+        <section
+          id="panel-mine"
+          role="tabpanel"
+          aria-labelledby="tab-mine"
+          className="space-y-4"
+        >
+          {phase === "name" ? (
+            <div className="space-y-2">
+              <p className="text-lg text-muted">
+                Enter your name, then mark when you&apos;re free.
+              </p>
+              <ParticipantNameForm
+                initialName={displayName}
+                onSubmit={startEditing}
+                submitLabel="Continue"
+              />
             </div>
           ) : (
-            <div className="space-y-4">
-              {phase === "saved" || stored ? (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-lg">
+                  Marking times for <strong>{displayName}</strong>
+                </p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      startEditing(displayName || stored?.displayName || "")
-                    }
-                    className="sketch-sm border-2 border-brown/25 bg-cream px-4 py-2 text-lg hover:bg-beige"
+                    onClick={() => setSelected(new Set(slotStarts))}
+                    className="min-h-10 rounded-md border border-brown/25 px-3 text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
                   >
-                    Edit availability
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelected(new Set())}
+                    className="min-h-10 rounded-md border border-brown/25 px-3 text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
+                  >
+                    Clear
                   </button>
                 </div>
-              ) : (
-                <div className="sketch-panel border-2 border-brown/20 bg-soft p-5">
-                  <p className="mb-4 text-lg text-muted">
-                    Add your times so the group heatmap can update.
-                  </p>
-                  <ParticipantNameForm onSubmit={startEditing} />
-                </div>
-              )}
+              </div>
 
-              {event.participants.length === 0 ? (
-                <div className="sketch-panel border-2 border-brown/20 bg-soft p-6 text-center">
-                  <p className="text-xl">No availability yet</p>
-                  <p className="mt-2 text-lg text-muted">
-                    Once people respond, you&apos;ll see overlapping times here.
-                  </p>
-                </div>
-              ) : (
-                <AvailabilityHeatmap
-                  dates={event.dates}
-                  slotStarts={slotStarts}
-                  timezone={event.timezone}
-                  participants={event.participants}
-                />
-              )}
-            </div>
+              <p className="text-base text-muted">
+                Drag across time slots to select or deselect. Then save.
+              </p>
+
+              <AvailabilityGrid
+                dates={event.dates}
+                slotStarts={slotStarts}
+                timezone={event.timezone}
+                selected={selected}
+                onChange={setSelected}
+              />
+
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isPending}
+                className="min-h-12 w-full rounded-md bg-brown px-5 text-xl text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown disabled:opacity-60 sm:w-auto"
+              >
+                {isPending ? "Saving…" : "Save my times"}
+              </button>
+            </>
           )}
+        </section>
+      ) : (
+        <section
+          id="panel-group"
+          role="tabpanel"
+          aria-labelledby="tab-group"
+          className="space-y-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <ParticipantList
+              participants={event.participants}
+              activeParticipantId={stored?.participantId}
+            />
+            {hasResponded ? (
+              <button
+                type="button"
+                onClick={() =>
+                  startEditing(displayName || stored?.displayName || "")
+                }
+                className="min-h-10 rounded-md border border-brown/25 px-3 text-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
+              >
+                Edit my times
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setViewMode("mine")}
+                className="min-h-10 rounded-md bg-brown px-3 text-base text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
+              >
+                Add your times
+              </button>
+            )}
+          </div>
 
-          {message ? (
-            <p
-              role="status"
-              className="sketch-sm border border-brown/30 bg-beige px-4 py-3 text-lg"
-            >
-              {message}
+          {event.participants.length === 0 ? (
+            <p className="rounded-md border border-brown/20 bg-soft p-4 text-lg text-muted">
+              No one has responded yet. Add your times, then share the link.
             </p>
-          ) : null}
-          {error ? (
-            <p
-              role="alert"
-              className="sketch-sm border border-brown/40 bg-beige px-4 py-3 text-lg"
-            >
-              {error}
-            </p>
-          ) : null}
-        </div>
-
-        <aside>
-          <ParticipantList
-            participants={event.participants}
-            activeParticipantId={stored?.participantId}
-          />
-        </aside>
-      </div>
+          ) : (
+            <AvailabilityHeatmap
+              dates={event.dates}
+              slotStarts={slotStarts}
+              timezone={event.timezone}
+              participants={event.participants}
+            />
+          )}
+        </section>
+      )}
     </div>
   );
 }

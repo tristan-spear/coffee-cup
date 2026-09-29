@@ -29,28 +29,48 @@ export async function generateMetadata({ params }: EventPageProps) {
   }
 }
 
+function SimpleMessage({
+  title,
+  body,
+  href = "/",
+  linkLabel = "Back home",
+}: {
+  title: string;
+  body: React.ReactNode;
+  href?: string;
+  linkLabel?: string;
+}) {
+  return (
+    <div className="bg-cream text-ink">
+      <SiteHeader />
+      <main className="mx-auto max-w-md px-6 py-16">
+        <h1 className="text-3xl leading-snug">{title}</h1>
+        <p className="mt-3 text-lg text-muted">{body}</p>
+        <Link
+          href={href}
+          className="mt-6 inline-flex min-h-12 items-center rounded-md bg-brown px-5 text-lg text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
+        >
+          {linkLabel}
+        </Link>
+      </main>
+    </div>
+  );
+}
+
 export default async function EventPage({ params }: EventPageProps) {
   const { eventId } = await params;
 
   if (!isDatabaseConfigured()) {
     return (
-      <div className="bg-cream text-brown">
-        <SiteHeader />
-        <main className="mx-auto max-w-lg px-6 py-20 text-center">
-          <h1 className="text-4xl tracking-wide">Almost ready</h1>
-          <p className="mt-4 text-xl leading-relaxed text-muted">
-            This event page needs a database connection. Add{" "}
-            <code className="text-ink">DATABASE_URL</code> and run migrations,
-            then try again.
-          </p>
-          <Link
-            href="/"
-            className="sketch-sm mt-8 inline-flex bg-brown px-5 py-3 text-xl text-cream"
-          >
-            Back home
-          </Link>
-        </main>
-      </div>
+      <SimpleMessage
+        title="Database not set up"
+        body={
+          <>
+            Add <code className="text-ink">DATABASE_URL</code> and run
+            migrations, then try again.
+          </>
+        }
+      />
     );
   }
 
@@ -59,22 +79,10 @@ export default async function EventPage({ params }: EventPageProps) {
     event = await getEventById(eventId);
   } catch {
     return (
-      <div className="bg-cream text-brown">
-        <SiteHeader />
-        <main className="mx-auto max-w-lg px-6 py-20 text-center">
-          <h1 className="text-4xl tracking-wide">Couldn&apos;t load event</h1>
-          <p className="mt-4 text-xl leading-relaxed text-muted">
-            Something went wrong talking to the database. Please try again in a
-            moment.
-          </p>
-          <Link
-            href="/"
-            className="sketch-sm mt-8 inline-flex bg-brown px-5 py-3 text-xl text-cream"
-          >
-            Back home
-          </Link>
-        </main>
-      </div>
+      <SimpleMessage
+        title="Couldn’t load this event"
+        body="Something went wrong. Please try again in a moment."
+      />
     );
   }
 
@@ -88,12 +96,9 @@ export default async function EventPage({ params }: EventPageProps) {
     : `/event/${event.id}`;
 
   return (
-    <div className="min-h-full bg-cream text-brown">
+    <div className="min-h-full bg-cream text-ink">
       <SiteHeader />
-      <EventWorkspace
-        initialEvent={event}
-        shareUrl={shareUrl}
-      />
+      <EventWorkspace initialEvent={event} shareUrl={shareUrl} />
     </div>
   );
 }
