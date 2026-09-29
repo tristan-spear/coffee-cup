@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { createEvent } from "@/app/actions/events";
 import { MultiDateSelector } from "@/app/components/multi-date-selector";
-import type { IntervalMinutes } from "@/lib/slots";
+import { WeekdaySelector } from "@/app/components/weekday-selector";
+import type { IntervalMinutes, ScheduleMode, Weekday } from "@/lib/slots";
 
 const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, index) => {
   const hours = Math.floor(index / 4);
@@ -23,7 +24,9 @@ const fieldClass =
 
 export function EventCreateForm() {
   const [title, setTitle] = useState("");
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("weekdays");
   const [dates, setDates] = useState<string[]>([]);
+  const [weekdays, setWeekdays] = useState<Weekday[]>([]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [intervalMinutes, setIntervalMinutes] = useState<IntervalMinutes>(30);
@@ -39,7 +42,9 @@ export function EventCreateForm() {
     startTransition(async () => {
       const result = await createEvent({
         title,
-        dates,
+        scheduleMode,
+        dates: scheduleMode === "dates" ? dates : [],
+        weekdays: scheduleMode === "weekdays" ? weekdays : [],
         startTime,
         endTime,
         intervalMinutes,
@@ -75,16 +80,73 @@ export function EventCreateForm() {
         />
       </div>
 
-      <div>
-        <p id="dates-label" className="mb-1.5 text-lg">
-          Dates
-        </p>
-        <MultiDateSelector
-          selected={dates}
-          onChange={setDates}
-          labelledBy="dates-label"
-        />
-      </div>
+      <fieldset>
+        <legend className="mb-1.5 text-lg">When can people meet?</legend>
+        <div
+          role="radiogroup"
+          aria-label="Schedule type"
+          className="mb-3 flex gap-1 rounded-md border border-brown/20 bg-cream p-1"
+        >
+          <label
+            className={`flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-lg ${
+              scheduleMode === "weekdays"
+                ? "bg-brown text-cream"
+                : "hover:bg-beige"
+            }`}
+          >
+            <input
+              type="radio"
+              name="schedule-mode"
+              value="weekdays"
+              checked={scheduleMode === "weekdays"}
+              onChange={() => setScheduleMode("weekdays")}
+              className="sr-only"
+            />
+            Days of the week
+          </label>
+          <label
+            className={`flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-md px-3 text-lg ${
+              scheduleMode === "dates"
+                ? "bg-brown text-cream"
+                : "hover:bg-beige"
+            }`}
+          >
+            <input
+              type="radio"
+              name="schedule-mode"
+              value="dates"
+              checked={scheduleMode === "dates"}
+              onChange={() => setScheduleMode("dates")}
+              className="sr-only"
+            />
+            Specific dates
+          </label>
+        </div>
+
+        {scheduleMode === "weekdays" ? (
+          <>
+            <p id="weekdays-label" className="mb-1.5 text-base text-muted">
+              Select days
+            </p>
+            <WeekdaySelector
+              selected={weekdays}
+              onChange={setWeekdays}
+              labelledBy="weekdays-label"
+            />
+          </>
+        ) : (
+          <>
+            <p id="dates-label" className="mb-1.5 text-base text-muted">
+              Select dates
+            </p>
+            <MultiDateSelector
+              selected={dates}
+              onChange={setDates}
+              labelledBy="dates-label"
+            />
+          </>
+        )}
+      </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

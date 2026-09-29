@@ -2,7 +2,8 @@ import "server-only";
 
 import { getSql } from "@/lib/db";
 import type { PublicEvent, PublicParticipant } from "@/lib/definitions";
-import type { IntervalMinutes } from "@/lib/slots";
+import type { IntervalMinutes, ScheduleMode, Weekday } from "@/lib/slots";
+import { isWeekday } from "@/lib/slots";
 import { generateEventId, hashEditToken } from "@/lib/tokens";
 
 type EventRow = {
@@ -12,6 +13,7 @@ type EventRow = {
   start_time: string;
   end_time: string;
   interval_minutes: number;
+  schedule_mode: string;
   created_at: string;
 };
 
@@ -42,29 +44,42 @@ export async function createEventRecord(input: {
   startTime: string;
   endTime: string;
   intervalMinutes: IntervalMinutes;
+  scheduleMode: ScheduleMode;
   dates: string[];
+  weekdays: Weekday[];
 }): Promise<string> {
   const sql = getSql();
   const id = generateEventId();
-  const sortedDates = [...input.dates].sort();
 
   await sql`
-    INSERT INTO events (id, title, timezone, start_time, end_time, interval_minutes)
+    INSERT INTO events (
+      id, title, timezone, start_time, end_time, interval_minutes, schedule_mode
+    )
     VALUES (
       ${id},
       ${input.title},
       ${input.timezone},
       ${input.startTime}::time,
       ${input.endTime}::time,
-      ${input.intervalMinutes}
+      ${input.intervalMinutes},
+      ${input.scheduleMode}
     )
   `;
 
-  for (const date of sortedDates) {
-    await sql`
-      INSERT INTO event_dates (event_id, event_date)
-      VALUES (${id}, ${date}::date)
-    `;
+  if (input.scheduleMode === "dates") {
+    for (const date of [...input.dates].sort()) {
+      await sql`
+        INSERT INTO event_dates (event_id, event_date)
+        VALUES (${id}, ${date}::date)
+      `;
+    }
+  } else {
+    for (const weekday of [...input.weekdays].sort((a, b) => a - b)) {
+      await sql`
+        INSERT INTO event_weekdays (event_id, weekday)
+        VALUES (${id}, ${weekday})
+      `;
+    }
   }
 
   return id;
@@ -74,7 +89,8 @@ export async function getEventById(eventId: string): Promise<PublicEvent | null>
   const sql = getSql();
 
   const eventRows = await sql`
-    SELECT id, title, timezone, start_time, end_time, interval_minutes, created_at
+    SELECT id, title, timezone, start_time, end_time, interval_minutes,
+           COALESCE(schedule_mode, 'dates') AS schedule_mode, created_at
     FROM events
     WHERE id = ${eventId}
     LIMIT 1
@@ -85,11 +101,21 @@ export async function getEventById(eventId: string): Promise<PublicEvent | null>
     return null;
   }
 
+  const scheduleMode =
+    event.schedule_mode === "weekdays" ? "weekdays" : "dates";
+
   const dateRows = await sql`
     SELECT event_date
     FROM event_dates
     WHERE event_id = ${eventId}
     ORDER BY event_date ASC
+  `;
+
+  const weekdayRows = await sql`
+    SELECT weekday
+    FROM event_weekdays
+    WHERE event_id = ${eventId}
+    ORDER BY weekday ASC
   `;
 
   const participantRows = await sql`
@@ -122,6 +148,10 @@ export async function getEventById(eventId: string): Promise<PublicEvent | null>
     updatedAt: new Date(p.updated_at).toISOString(),
   }));
 
+  const weekdays = (weekdayRows as { weekday: number }[])
+    .map((row) => row.weekday)
+    .filter(isWeekday);
+
   return {
     id: event.id,
     title: event.title,
@@ -129,9 +159,11 @@ export async function getEventById(eventId: string): Promise<PublicEvent | null>
     startTime: normalizeTime(String(event.start_time)),
     endTime: normalizeTime(String(event.end_time)),
     intervalMinutes: event.interval_minutes as IntervalMinutes,
+    scheduleMode,
     dates: (dateRows as { event_date: string | Date }[]).map((d) =>
       toDateString(d.event_date),
     ),
+    weekdays,
     createdAt: new Date(event.created_at).toISOString(),
     participants,
   };

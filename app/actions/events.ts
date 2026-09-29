@@ -18,7 +18,7 @@ import {
   replaceAvailabilitySlots,
   updateParticipantName,
 } from "@/lib/events";
-import { filterValidSlots, generateSlotStarts } from "@/lib/slots";
+import { filterValidSlots, generateSlotStarts, type Weekday } from "@/lib/slots";
 import {
   generateEditToken,
   verifyEditToken,
@@ -63,7 +63,9 @@ export async function createEvent(
       startTime: parsed.data.startTime,
       endTime: parsed.data.endTime,
       intervalMinutes: parsed.data.intervalMinutes,
+      scheduleMode: parsed.data.scheduleMode,
       dates: parsed.data.dates,
+      weekdays: parsed.data.weekdays as Weekday[],
     });
 
     redirect(`/event/${eventId}`);
@@ -139,7 +141,9 @@ export async function saveAvailability(
     }
 
     const config = {
+      scheduleMode: event.scheduleMode,
       dates: event.dates,
+      weekdays: event.weekdays,
       startTime: event.startTime,
       endTime: event.endTime,
       intervalMinutes: event.intervalMinutes,
@@ -279,7 +283,9 @@ export async function getEventSlotStarts(eventId: string): Promise<string[]> {
   }
 
   return generateSlotStarts({
+    scheduleMode: event.scheduleMode,
     dates: event.dates,
+    weekdays: event.weekdays,
     startTime: event.startTime,
     endTime: event.endTime,
     intervalMinutes: event.intervalMinutes,
