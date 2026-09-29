@@ -12,7 +12,7 @@ type ParticipantNameFormProps = {
 export function ParticipantNameForm({
   initialName = "",
   onSubmit,
-  submitLabel = "Add my availability",
+  submitLabel = "Continue",
   disabled = false,
 }: ParticipantNameFormProps) {
   const [name, setName] = useState(initialName);
@@ -30,7 +30,7 @@ export function ParticipantNameForm({
       }}
     >
       <div className="min-w-0 flex-1">
-        <label htmlFor="display-name" className="mb-2 block text-xl">
+        <label htmlFor="display-name" className="mb-1.5 block text-lg">
           Your name
         </label>
         <input
@@ -38,16 +38,17 @@ export function ParticipantNameForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={60}
-          placeholder="First name or nickname"
-          className="sketch-sm w-full border-2 border-brown/25 bg-cream px-4 py-3 text-xl outline-none focus:border-brown"
+          placeholder="First name"
+          className="w-full rounded-md border border-brown/30 bg-soft px-3 py-2.5 text-lg outline-none focus-visible:border-brown focus-visible:ring-2 focus-visible:ring-brown/30"
           disabled={disabled}
           required
+          autoComplete="nickname"
         />
       </div>
       <button
         type="submit"
         disabled={disabled || !name.trim()}
-        className="sketch-sm h-12 bg-brown px-5 text-xl text-cream disabled:opacity-60"
+        className="min-h-12 rounded-md bg-brown px-5 text-lg text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown disabled:opacity-60"
       >
         {submitLabel}
       </button>

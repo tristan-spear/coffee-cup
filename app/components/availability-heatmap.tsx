@@ -52,7 +52,11 @@ export function AvailabilityHeatmap({
   const total = participants.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <p className="text-base text-muted">
+        Darker times mean more people are free. Select a cell for names.
+      </p>
+
       <AvailabilityGrid
         dates={dates}
         slotStarts={slotStarts}
@@ -75,69 +79,34 @@ export function AvailabilityHeatmap({
               total === 0
                 ? "No responses yet"
                 : `${count} of ${total} available`,
-            textClass:
-              intensity >= 0.5 ? "text-cream" : "text-ink",
+            textClass: intensity >= 0.5 ? "text-cream" : "text-ink",
           };
         }}
       />
 
-      <div className="flex flex-wrap items-center gap-3 text-base text-muted">
-        <span>Fewer</span>
-        <div className="flex overflow-hidden rounded border border-brown/20">
-          {["#F5F0E8", "#E8D5C4", "#C9A98E", "#8A5A3B", "#3D2B1F"].map(
-            (color) => (
-              <span
-                key={color}
-                className="h-4 w-6"
-                style={{ backgroundColor: color }}
-                aria-hidden
-              />
-            ),
-          )}
-        </div>
-        <span>More</span>
-      </div>
-
       {active ? (
         <div
-          className="sketch-panel border-2 border-brown/20 bg-soft p-4"
+          className="rounded-md border border-brown/20 bg-soft p-3"
           role="status"
+          aria-live="polite"
         >
           <p className="text-lg">
-            {active.count} of {total} available
+            {active.count} of {total} free
           </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div>
-              <p className="text-base text-muted">Available</p>
-              <ul className="mt-1 space-y-1 text-lg">
-                {active.availableNames.length === 0 ? (
-                  <li className="text-muted">Nobody yet</li>
-                ) : (
-                  active.availableNames.map((name) => (
-                    <li key={`a-${name}`}>{name}</li>
-                  ))
-                )}
-              </ul>
-            </div>
-            <div>
-              <p className="text-base text-muted">Unavailable</p>
-              <ul className="mt-1 space-y-1 text-lg">
-                {active.unavailableNames.length === 0 ? (
-                  <li className="text-muted">Nobody</li>
-                ) : (
-                  active.unavailableNames.map((name) => (
-                    <li key={`u-${name}`}>{name}</li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
+          {active.availableNames.length > 0 ? (
+            <p className="mt-1 text-base">
+              <span className="text-muted">Free: </span>
+              {active.availableNames.join(", ")}
+            </p>
+          ) : null}
+          {active.unavailableNames.length > 0 ? (
+            <p className="mt-1 text-base">
+              <span className="text-muted">Busy: </span>
+              {active.unavailableNames.join(", ")}
+            </p>
+          ) : null}
         </div>
-      ) : (
-        <p className="text-base text-muted">
-          Tap or hover a cell to see who is free.
-        </p>
-      )}
+      ) : null}
     </div>
   );
 }

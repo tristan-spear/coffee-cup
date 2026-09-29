@@ -19,12 +19,10 @@ function resolveShareUrl(shareUrl: string): string {
   return `${window.location.origin}${shareUrl.startsWith("/") ? "" : "/"}${shareUrl}`;
 }
 
-// Keep the prop stable across SSR/client hydration; resolve to absolute only when sharing.
 export function ShareLinkControl({ url }: ShareLinkControlProps) {
   const [copied, setCopied] = useState(false);
   const [canNativeShare] = useState(supportsNativeShare);
   const timeoutRef = useRef<number | null>(null);
-  const displayUrl = url;
 
   async function copyLink() {
     const absolute = resolveShareUrl(url);
@@ -45,40 +43,33 @@ export function ShareLinkControl({ url }: ShareLinkControlProps) {
     try {
       await navigator.share({
         title: "CoffeeCup event",
-        text: "Share when you're free:",
+        text: "Mark when you're free:",
         url: absolute,
       });
     } catch {
-      // user cancelled — ignore
+      // cancelled
     }
   }
 
   return (
-    <div className="sketch-panel border-2 border-brown/20 bg-soft p-4 sm:p-5">
-      <p className="text-lg leading-relaxed text-ink">
-        Send this link to everyone who should respond.
-      </p>
-      <p className="mt-2 truncate text-base text-muted" title={displayUrl}>
-        {displayUrl}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <p className="text-base text-muted">Share with others:</p>
+      <button
+        type="button"
+        onClick={copyLink}
+        className="min-h-10 rounded-md bg-brown px-4 text-lg text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
+      >
+        {copied ? "Copied!" : "Copy link"}
+      </button>
+      {canNativeShare ? (
         <button
           type="button"
-          onClick={copyLink}
-          className="sketch-sm bg-brown px-4 py-2 text-lg text-cream hover:opacity-95"
+          onClick={nativeShare}
+          className="min-h-10 rounded-md border border-brown/30 px-4 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brown"
         >
-          {copied ? "Copied!" : "Copy link"}
+          Share
         </button>
-        {canNativeShare ? (
-          <button
-            type="button"
-            onClick={nativeShare}
-            className="sketch-sm border-2 border-brown/30 bg-cream px-4 py-2 text-lg hover:bg-beige"
-          >
-            Share
-          </button>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }
