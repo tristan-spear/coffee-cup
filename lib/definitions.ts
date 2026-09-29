@@ -4,7 +4,10 @@ import {
   MAX_EVENT_DATES,
   MAX_EVENT_TITLE_LENGTH,
   MAX_PARTICIPANT_NAME_LENGTH,
+  SCHEDULE_MODES,
   validateEventRange,
+  type ScheduleMode,
+  type Weekday,
 } from "@/lib/slots";
 
 export const CreateEventSchema = z
@@ -17,10 +20,11 @@ export const CreateEventSchema = z
         MAX_EVENT_TITLE_LENGTH,
         `Event name must be ${MAX_EVENT_TITLE_LENGTH} characters or fewer.`,
       ),
+    scheduleMode: z.enum(SCHEDULE_MODES),
     dates: z
       .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date."))
-      .min(1, "Select at least one date.")
       .max(MAX_EVENT_DATES, `Please choose ${MAX_EVENT_DATES} dates or fewer.`),
+    weekdays: z.array(z.number().int().min(0).max(6)),
     startTime: z.string().min(1, "Choose a start time."),
     endTime: z.string().min(1, "Choose an end time."),
     intervalMinutes: z.union([
@@ -85,7 +89,9 @@ export type PublicEvent = {
   startTime: string;
   endTime: string;
   intervalMinutes: 15 | 30 | 60;
+  scheduleMode: ScheduleMode;
   dates: string[];
+  weekdays: Weekday[];
   createdAt: string;
   participants: PublicParticipant[];
 };

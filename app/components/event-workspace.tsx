@@ -13,7 +13,12 @@ import {
   setStoredParticipant,
   type StoredParticipant,
 } from "@/lib/participant-storage";
-import { formatDateLabel, generateSlotStarts } from "@/lib/slots";
+import {
+  columnKeysForEvent,
+  formatDateLabel,
+  formatWeekdaySummary,
+  generateSlotStarts,
+} from "@/lib/slots";
 
 type EventWorkspaceProps = {
   initialEvent: PublicEvent;
@@ -60,11 +65,23 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
   const slotStarts = useMemo(
     () =>
       generateSlotStarts({
+        scheduleMode: event.scheduleMode,
         dates: event.dates,
+        weekdays: event.weekdays,
         startTime: event.startTime,
         endTime: event.endTime,
         intervalMinutes: event.intervalMinutes,
         timezone: event.timezone,
+      }),
+    [event],
+  );
+
+  const columnDates = useMemo(
+    () =>
+      columnKeysForEvent({
+        scheduleMode: event.scheduleMode,
+        dates: event.dates,
+        weekdays: event.weekdays,
       }),
     [event],
   );
@@ -126,7 +143,10 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
     });
   }
 
-  const dateSummary = event.dates.map((d) => formatDateLabel(d)).join(", ");
+  const dateSummary =
+    event.scheduleMode === "weekdays"
+      ? formatWeekdaySummary(event.weekdays)
+      : event.dates.map((d) => formatDateLabel(d)).join(", ");
   const hasResponded =
     phase === "saved" ||
     Boolean(
@@ -238,7 +258,8 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
               </p>
 
               <AvailabilityGrid
-                dates={event.dates}
+                dates={columnDates}
+                scheduleMode={event.scheduleMode}
                 slotStarts={slotStarts}
                 timezone={event.timezone}
                 selected={selected}
@@ -295,7 +316,8 @@ export function EventWorkspace({ initialEvent, shareUrl }: EventWorkspaceProps) 
             </p>
           ) : (
             <AvailabilityHeatmap
-              dates={event.dates}
+              dates={columnDates}
+              scheduleMode={event.scheduleMode}
               slotStarts={slotStarts}
               timezone={event.timezone}
               participants={event.participants}

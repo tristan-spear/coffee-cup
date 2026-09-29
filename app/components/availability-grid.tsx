@@ -10,15 +10,19 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
+  formatColumnAriaLabel,
   formatDateLabel,
   formatSlotLabel,
   paintModeForCell,
+  SELECTED_SLOT_COLOR,
   slotDateKey,
   toggleSlots,
+  type ScheduleMode,
 } from "@/lib/slots";
 
 type AvailabilityGridProps = {
   dates: string[];
+  scheduleMode?: ScheduleMode;
   slotStarts: string[];
   timezone: string;
   selected: Set<string>;
@@ -36,6 +40,7 @@ type AvailabilityGridProps = {
 
 export function AvailabilityGrid({
   dates,
+  scheduleMode = "dates",
   slotStarts,
   timezone,
   selected,
@@ -186,7 +191,7 @@ export function AvailabilityGrid({
             className="sticky top-0 z-20 border-b border-brown/15 bg-soft px-2 py-3 text-center text-base leading-tight"
             role="columnheader"
           >
-            {formatDateLabel(date)}
+            {formatDateLabel(date, scheduleMode)}
           </div>
         ))}
 
@@ -223,7 +228,7 @@ export function AvailabilityGrid({
                     type="button"
                     role="gridcell"
                     data-slot-start={slotStart}
-                    aria-label={`${formatDateLabel(date, "EEEE MMM d")} at ${timeLabel}${
+                    aria-label={`${formatColumnAriaLabel(date, scheduleMode)} at ${timeLabel}${
                       custom
                         ? `, ${custom.title}`
                         : isSelected
@@ -236,7 +241,7 @@ export function AvailabilityGrid({
                       isActive ? "ring-2 ring-inset ring-brown" : ""
                     } ${
                       !custom && isSelected
-                        ? "bg-brown text-cream"
+                        ? "text-ink"
                         : !custom
                           ? "bg-cream hover:bg-beige"
                           : ""
@@ -249,7 +254,9 @@ export function AvailabilityGrid({
                                 ? undefined
                                 : custom.background,
                           }
-                        : undefined
+                        : isSelected
+                          ? { backgroundColor: SELECTED_SLOT_COLOR }
+                          : undefined
                     }
                     onPointerDown={(event) =>
                       handlePointerDown(slotStart, event)
@@ -258,8 +265,7 @@ export function AvailabilityGrid({
                   >
                     <span
                       className={
-                        custom?.textClass ??
-                        (isSelected && !custom ? "text-cream" : "text-ink")
+                        custom?.textClass ?? "text-ink"
                       }
                     >
                       {custom?.label ?? ""}

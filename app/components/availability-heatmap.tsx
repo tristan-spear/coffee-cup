@@ -6,6 +6,7 @@ import {
   buildAvailabilityCounts,
   heatmapIntensity,
   heatmapShade,
+  type ScheduleMode,
 } from "@/lib/slots";
 
 type HeatmapParticipant = {
@@ -16,6 +17,7 @@ type HeatmapParticipant = {
 
 type AvailabilityHeatmapProps = {
   dates: string[];
+  scheduleMode?: ScheduleMode;
   slotStarts: string[];
   timezone: string;
   participants: HeatmapParticipant[];
@@ -23,6 +25,7 @@ type AvailabilityHeatmapProps = {
 
 export function AvailabilityHeatmap({
   dates,
+  scheduleMode = "dates",
   slotStarts,
   timezone,
   participants,
@@ -59,6 +62,7 @@ export function AvailabilityHeatmap({
 
       <AvailabilityGrid
         dates={dates}
+        scheduleMode={scheduleMode}
         slotStarts={slotStarts}
         timezone={timezone}
         selected={new Set()}
@@ -79,7 +83,7 @@ export function AvailabilityHeatmap({
               total === 0
                 ? "No responses yet"
                 : `${count} of ${total} available`,
-            textClass: intensity >= 0.5 ? "text-cream" : "text-ink",
+            textClass: intensity >= 0.75 ? "text-cream" : "text-ink",
           };
         }}
       />
